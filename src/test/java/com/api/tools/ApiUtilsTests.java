@@ -18,8 +18,13 @@ public class ApiUtilsTests {
 
         List<String> times = ApiUtils.getFieldValues(jsonData, "records.time");
 
+
         Assert.assertNotNull(times);
         Assert.assertEquals(times.size(), 2);
+
+        List<String> flows = ApiUtils.getFieldValues(jsonData, "records.properties.flows");
+
+        Assert.assertNotNull(flows);
     }
 
     private String getJsonData() {
