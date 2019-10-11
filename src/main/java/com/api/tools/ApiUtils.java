@@ -6,14 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Author: srliu
  * Date: 10/5/19
  */
 public class ApiUtils {
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
     public static String getFieldValue(String jsonData, String filedPath) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(new ByteArrayInputStream(jsonData.getBytes(StandardCharsets.UTF_8)));
@@ -24,22 +25,42 @@ public class ApiUtils {
     }
 
     public static List<String> getFieldValues(String jsonData, String fieldPath) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(new ByteArrayInputStream(jsonData.getBytes(StandardCharsets.UTF_8)));
-
         String[] fieldPaths = splitPath(fieldPath);
 
-        JsonNode targetNode = null;
+        return getFieldValues(jsonData, fieldPaths);
+    }
+
+    public static List<String> getFieldValues(String jsonData, String[] fieldPaths) throws IOException {
+        JsonNode rootNode = objectMapper.readTree(new ByteArrayInputStream(jsonData.getBytes(StandardCharsets.UTF_8)));
+
+        if(rootNode == null){
+            return Collections.emptyList();
+        }
+
+        List<JsonNode> lastLayerNodes = null;
+        List<JsonNode> results = Arrays.asList(rootNode);;
+
         int len = fieldPaths.length;
-//        for (int i = 0; i < len; i++) {
-        targetNode = rootNode.findValue(fieldPaths[0]);
+        for (int i = 0; i < len; i++) {
+            lastLayerNodes = results;
 
-      List<JsonNode> timeNodes = targetNode.findValues(fieldPaths[1]);
+            results = new LinkedList<>();
+            if(lastLayerNodes != null && !lastLayerNodes.isEmpty()){
+                for(JsonNode node:lastLayerNodes){
+                    List<JsonNode> tmpNodes = node.findValues(fieldPaths[i]);
+                    if(tmpNodes!= null && !tmpNodes.isEmpty()){
+                        results.addAll(tmpNodes);
+                    }
+                }
+            }
 
-//        }
+            if(results.isEmpty()){
+                break;
+            }
+        }
 
-        List<String> values = new ArrayList<>(timeNodes.size());
-        for(JsonNode jsonNode:timeNodes){
+        List<String> values = new ArrayList<>(results.size());
+        for (JsonNode jsonNode : results) {
             values.add(jsonNode.asText());
         }
 
