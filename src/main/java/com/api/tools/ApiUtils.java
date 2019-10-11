@@ -16,14 +16,22 @@ public class ApiUtils {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static String getFieldValue(String jsonData, String filedPath) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(new ByteArrayInputStream(jsonData.getBytes(StandardCharsets.UTF_8)));
+        List<String> values = getFieldValues(jsonData,filedPath);
 
-        JsonNode targetNode = rootNode.findValue(filedPath);
+        if(values != null && !values.isEmpty()){
+            return values.get(0);
+        }
 
         return null;
     }
 
+    /**
+     *
+     * @param jsonData
+     * @param fieldPath
+     * @return
+     * @throws IOException
+     */
     public static List<String> getFieldValues(String jsonData, String fieldPath) throws IOException {
         String[] fieldPaths = splitPath(fieldPath);
 
